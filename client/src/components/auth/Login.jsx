@@ -5,7 +5,7 @@ import { GoEyeClosed } from "react-icons/go";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export const Login = () => {
+export const Login = ({ setIsLoggedIn }) => {
   const { register, handleSubmit } = useForm();
   const [showPassword, setshowPassword] = useState(false);
   const navigate = useNavigate();
@@ -14,18 +14,18 @@ export const Login = () => {
   const onSubmit = async (data) => {
     matchRefErr.current.style.display = "hidden";
 
-    console.log(data);
     const result = await loginFromServer(data);
     if (!result.isLoggedIn) {
       matchRefErr.current.style.display = "block";
       return;
     }
 
+    setIsLoggedIn(true);
     navigate("/test");
   };
   return (
     <>
-      <div className="flex justify-center items-center py-10 px-4">
+      <div className="flex justify-center items-center mt-20 px-4">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-4 w-full max-w-sm border rounded-lg p-6 shadow-sm"

@@ -1,29 +1,52 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
-export const Timer = ({ onTimeUp }) => {
-  const [secondsLeft, setSecondsLeft] = useState(600);
+const getRemainingSeconds = (startTime, duration) => {
+  const start = Number(startTime);
+  if (!start) return duration; // no valid start time, don't expire
+
+  const elapsed = Math.floor((Date.now() - start) / 1000);
+  return Math.max(duration - elapsed, 0);
+};
+
+export const Timer = ({ startTime, duration, onTimeUp }) => {
+  const [remainingTime, setRemainingTime] = useState(() =>
+    getRemainingSeconds(startTime, duration),
+  );
+
+  const onTimeUpRef = useRef(onTimeUp);
+  const firedRef = useRef(false);
+
+  // always call the latest handler
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
 
   useEffect(() => {
-    if (secondsLeft <= 0) {
-      onTimeUp();
-      return;
-    }
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => prev - 1);
-    }, 1000);
+    firedRef.current = false;
 
-    return () => clearInterval(timer);
-  }, [secondsLeft, onTimeUp]);
+    const tick = () => {
+      const remaining = getRemainingSeconds(startTime, duration);
+      setRemainingTime(remaining);
 
-  const formatTime = (totalSeconds) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
+      if (remaining <= 0 && !firedRef.current) {
+        firedRef.current = true;
+        clearInterval(interval);
+        onTimeUpRef.current();
+      }
+    };
+
+    const interval = setInterval(tick, 1000);
+    tick(); // check immediately (handles refresh after expiry)
+
+    return () => clearInterval(interval);
+  }, [startTime, duration]);
+
+  const minutes = Math.floor(remainingTime / 60);
+  const seconds = remainingTime % 60;
 
   return (
-    <div style={{ textAlign: "center", fontFamily: "sans-serif" }}>
-      <h1>{formatTime(secondsLeft)}</h1>
-    </div>
+    <h2 className="font-semibold text-lg">
+      {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+    </h2>
   );
 };

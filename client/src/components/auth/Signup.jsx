@@ -34,7 +34,6 @@ export const Signup = () => {
     }
 
     const result = await signupFromServer(data);
-    console.log(result);
 
     if (result.signup) {
       navigate("/login");
@@ -42,7 +41,7 @@ export const Signup = () => {
   };
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="mt-20 flex items-center justify-center px-4">
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-2 w-full max-w-md bg-white p-8 rounded-xl shadow-sm border"

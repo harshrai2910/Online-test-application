@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 export const Navbar = ({ isLoggedIn, handleLogout }) => {
   return (
     <nav className="flex justify-between items-center px-10 py-4 border-b">
-      <h1 className="text-xl font-semibold">Online Test</h1>
+      <Link to="/" className="text-xl font-semibold">
+        Online Test
+      </Link>
 
       <div className="flex gap-6">
         {isLoggedIn ? (

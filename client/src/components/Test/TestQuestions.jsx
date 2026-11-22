@@ -2,22 +2,64 @@ import { QuestionCard } from "./QuestionCard";
 import { useForm } from "react-hook-form";
 import { Timer } from "./Timer";
 import { verifyResultFromServer } from "../../services/testLinkServices";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 
-export const TestQuestions = ({ Questions, setTestResult }) => {
-  const { register, handleSubmit } = useForm();
+const readSavedAnswers = () => {
+  try {
+    const saved = sessionStorage.getItem("selectedAnswers");
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    sessionStorage.removeItem("selectedAnswers");
+    return {};
+  }
+};
+
+export const TestQuestions = ({ Questions, testStartTime, finishTest }) => {
   const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const submittedRef = useRef(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { isSubmitting },
+  } = useForm({ defaultValues: readSavedAnswers() }); // restored before first render
 
   const onSubmit = async (data) => {
-    const result = await verifyResultFromServer(data);
-    setTestResult(result);
-    navigate("/test/result");
+    if (submittedRef.current) return; // block double submit
+    submittedRef.current = true;
+    setError("");
+
+    try {
+      const result = await verifyResultFromServer(data);
+      finishTest(result); // saves result, clears test storage + state
+      navigate("/test/result", { replace: true });
+    } catch (err) {
+      console.error(err);
+      submittedRef.current = false; // allow retry
+      setError("Could not submit your test. Please try again.");
+    }
   };
+
+  // persist answers as the user selects them
+  useEffect(() => {
+    const subscription = watch((data) => {
+      if (submittedRef.current) return; // don't re-write after submit
+      sessionStorage.setItem("selectedAnswers", JSON.stringify(data));
+    });
+    return () => subscription.unsubscribe();
+  }, [watch]);
+
+  // no active test → send them back (but not while we're finishing one)
+  if (Questions.length === 0 && !submittedRef.current) {
+    return <Navigate to="/test" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-semibold">Online Test</h1>
@@ -28,7 +70,11 @@ export const TestQuestions = ({ Questions, setTestResult }) => {
 
           <div className="border rounded-lg px-4 py-2 bg-white">
             <p className="text-sm text-gray-500">Time Remaining</p>
-            <Timer onTimeUp={handleSubmit(onSubmit)} />
+            <Timer
+              onTimeUp={handleSubmit(onSubmit)}
+              startTime={testStartTime}
+              duration={600}
+            />
           </div>
         </div>
 
@@ -37,17 +83,24 @@ export const TestQuestions = ({ Questions, setTestResult }) => {
             onSubmit={handleSubmit(onSubmit)}
             className="w-full max-w-2xl border rounded-lg p-6 shadow-sm space-y-5 bg-white"
           >
-            {Questions?.map((question, index) => (
+            {Questions.map((question, index) => (
               <QuestionCard
+                key={question._id}
                 question={question}
                 index={index + 1}
                 register={register}
               />
             ))}
 
+            {error && <p className="text-sm text-red-500">{error}</p>}
+
             <div className="flex justify-end mt-8">
-              <button className="bg-blue-400 text-white px-6 py-2 rounded-sm">
-                Submit Test
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-400 text-white px-6 py-2 rounded-sm disabled:opacity-50"
+              >
+                {isSubmitting ? "Submitting..." : "Submit Test"}
               </button>
             </div>
           </form>
