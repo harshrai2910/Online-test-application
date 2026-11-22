@@ -44,7 +44,7 @@ const testRouter = require("./router/testRouter");
 app.use("/api/user", authRouter);
 app.use("/api/test", testRouter);
 
-const PORT = 3004;
+const PORT = process.env.PORT || 3004;
 
 mongoose
   .connect(DATA_PATH)
