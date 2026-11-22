@@ -36,7 +36,7 @@ export const Timer = ({ startTime, duration, onTimeUp }) => {
     };
 
     const interval = setInterval(tick, 1000);
-    tick(); // check immediately (handles refresh after expiry)
+    tick();
 
     return () => clearInterval(interval);
   }, [startTime, duration]);

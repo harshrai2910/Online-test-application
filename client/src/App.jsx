@@ -1,11 +1,4 @@
-import {
-  Routes,
-  Route,
-  useNavigate,
-  useLocation,
-  Navigate,
-} from "react-router-dom";
-import "./App.css";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Signup } from "./components/auth/Signup";
 import { Login } from "./components/auth/Login";
 import { Navbar } from "./components/navigation/Navbar";
@@ -16,9 +9,9 @@ import { TestQuestions } from "./components/Test/TestQuestions";
 import { testQuestionsFromServer } from "./services/testLinkServices";
 import { Result } from "./components/Test/Result";
 import { History } from "./components/Test/History";
-import { Loader } from "./components/loader";
 import { LandingPage } from "./components/LandingPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import "./App.css";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -34,7 +27,6 @@ function App() {
     }
   };
 
-  // inside App()
   const [Questions, setQuestions] = useState(() =>
     readSession("testQuestions", []),
   );
@@ -115,7 +107,7 @@ function App() {
           path="/login"
           element={<Login setIsLoggedIn={setIsLoggedIn} />}
         />
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage isLoggedIn={isLoggedIn} />} />
 
         <Route
           element={

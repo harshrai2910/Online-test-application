@@ -25,16 +25,16 @@ export const TestQuestions = ({ Questions, testStartTime, finishTest }) => {
     handleSubmit,
     watch,
     formState: { isSubmitting },
-  } = useForm({ defaultValues: readSavedAnswers() }); // restored before first render
+  } = useForm({ defaultValues: readSavedAnswers() });
 
   const onSubmit = async (data) => {
-    if (submittedRef.current) return; // block double submit
+    if (submittedRef.current) return;
     submittedRef.current = true;
     setError("");
 
     try {
       const result = await verifyResultFromServer(data);
-      finishTest(result); // saves result, clears test storage + state
+      finishTest(result);
       navigate("/test/result", { replace: true });
     } catch (err) {
       console.error(err);
@@ -43,16 +43,14 @@ export const TestQuestions = ({ Questions, testStartTime, finishTest }) => {
     }
   };
 
-  // persist answers as the user selects them
   useEffect(() => {
     const subscription = watch((data) => {
-      if (submittedRef.current) return; // don't re-write after submit
+      if (submittedRef.current) return;
       sessionStorage.setItem("selectedAnswers", JSON.stringify(data));
     });
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  // no active test → send them back (but not while we're finishing one)
   if (Questions.length === 0 && !submittedRef.current) {
     return <Navigate to="/test" replace />;
   }

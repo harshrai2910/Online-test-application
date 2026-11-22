@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export const LandingPage = () => {
+export const LandingPage = ({ isLoggedIn }) => {
   return (
     <div className="flex flex-col mt-20 items-center justify-center px-6 text-center">
       <h1 className="text-3xl md:text-5xl font-bold text-gray-900">
@@ -13,7 +13,7 @@ export const LandingPage = () => {
       </p>
 
       <Link
-        to="/login"
+        to={isLoggedIn ? "/test" : "/login"}
         className="mt-8 rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white transition hover:bg-blue-700"
       >
         Get Started →
