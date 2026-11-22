@@ -3,7 +3,10 @@ const User = require("../model/User");
 const bcrypt = require("bcrypt");
 
 exports.postSignup = [
-  check("name").trim().min(4).withMessage("Should contain at least 5 char"),
+  check("name")
+    .trim()
+    .isLength({ min: 4 })
+    .withMessage("Should contain at least 4 char"),
   check("email").trim().isEmail().withMessage("enter a valid email"),
 
   check("password")
@@ -50,12 +53,18 @@ exports.postLogin = async (req, res, _) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    return res.json({ msg: "email/username or password dosen't match!" });
+    return res.json({
+      isLoggedIn: false,
+      msg: "email/username or password dosen't match!",
+    });
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    return res.json({ msg: "email/username or password dosen't match!" });
+    return res.json({
+      isLoggedIn: false,
+      msg: "email/username or password dosen't match!",
+    });
   }
 
   req.session.isLoggedIn = true;
@@ -72,4 +81,14 @@ exports.postLogout = (req, res, next) => {
     }
     res.clearCookie("connect.sid").json({ msg: "logout successfully" });
   });
+};
+
+exports.getAuthStatus = (req, res, next) => {
+  if (req.session.isLoggedIn) {
+    return res
+      .status(200)
+      .json({ isLoggedIn: true, userId: req.session.userId });
+  } else {
+    return res.status(200).json({ isLoggedIn: false });
+  }
 };
